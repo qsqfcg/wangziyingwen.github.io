@@ -1,0 +1,88 @@
+<html>
+<head>
+  <meta charset='utf-8' />
+  <title>GetRefreshToken</title>
+  <style type="text/css">
+    textarea {
+      width:250px;
+      height:80px;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+        <div>
+        <form action="https://login.microsoftonline.com/common/oauth2/v2.0/authorize" method="GET" target="_blank" style="display:none">
+           <input type="text" name="scope" class="scope" placeholder="scope"/>          
+           <input type="text" name="response_type" placeholder="response_type" value="code"/>
+           <input type="text" name="client_id" class="client_id" placeholder="client_id"/>
+           <input type="text" name="redirect_uri" class="redirect_uri" placeholder="redirect_uri"/>
+           <input type="submit" id="submit_1"/>
+        </form>
+        <form action="https://login.microsoftonline.com/common/oauth2/v2.0/token" method="POST" style="display:none">
+           <input type="text" name="scope" class="scope" placeholder="scope"/> 
+           <input type="text" name="client_id" class="client_id" placeholder="client_id"/>
+           <input type="text" name="client_secret" class="client_secret" placeholder="client_secret"/>           
+           <input type="text" name="grant_type" placeholder="authorization_code" value="authorization_code"/>                   
+           <input type="text" name="redirect_uri" class="redirect_uri" placeholder="redirect_uri"/>
+           <input type="text" name="code" id="code_2" placeholder="code"/>
+           <input type="submit" id="submit_2" />
+        </form>
+        <form action="https://login.microsoftonline.com/organizations/v2.0/adminconsent" method="GET" target="_blank" style="display:none">
+           <input type="text" name="scope" class="scope" placeholder="scope"/>          
+           <input type="text" name="client_id" class="client_id" placeholder="client_id"/>
+           <input type="text" name="redirect_uri" class="redirect_uri" placeholder="redirect_uri"/>
+           <input type="submit" id="submit_3"/>
+        </form>
+        <h3>第一步，获取code </h3>
+        <p>输入应用id:</p>
+        <input type="text" id="client_id" placeholder="client_id"/><br />
+        <p>输入应用密码:</p>
+        <input type="text" id="client_secret" placeholder="client_secret"/><br />
+        <!-- 显式方便自定义 WZYW-->
+        <p>输入重定向url:（不用填）</p>
+        <input type="text" id="redirect_uri" placeholder="重定向url,不用填" value="https://login.microsoftonline.com/common/oauth2/nativeclient"/><br />
+        <p>输入所需api权限:（不用填）</p>
+        <textarea type="text" id="scope" placeholder="授权api，不用填">offline_access Calendars.ReadWrite Contacts.ReadWrite Directory.ReadWrite.All Files.ReadWrite.All Group.ReadWrite.All MailboxSettings.ReadWrite Mail.ReadWrite Mail.Send Notes.ReadWrite.All People.Read.All Sites.ReadWrite.All Tasks.ReadWrite User.ReadWrite.All</textarea><br /><br />
+        <p>管理员号：</p>
+        <input type="button" value="获取code" onclick="getCoke(0)"/>
+        <p>子号：（子号新注册应用按此法。如果跟管理员号同一个应用，请直接点上面获取code）</p>
+        <input type="button" value="先点此按钮，用管理员号登录授权" onclick="getCoke(1)"/>
+        <input type="button" value="再点击此按钮，子号登录获取code" onclick="getCoke(0)"/>
+        <p> 授权许可页面（记得勾选"代表组织同意"）</p>    
+        <p> 许可接受后会跳转出现空白页面，不用管，复制浏览器的地址栏（类似 localhost/?code=abc...xyz%session_state=xxx ） </p>
+        <p> 然后在下面url-code框填入</p> 
+        <h3>第二步，获取refresh_token </h3>
+        <p>输入url-code:</p>
+        <textarea type="text" name="code" placeholder="url-code" id="code_0"></textarea><br /><br />
+        <input type="button" value="获取Token" onclick="getToken()"/>
+        <div id="errormsg"></div>
+        <p> 填入地址后，点击提交，会跳出一大段abcdefg，从中找到 "refresh_token": "cba...zyx" ，然后复制后面双引号的内容（即cba...zyx），到这里就获得了refresh_token</p>  
+        </div>
+        <script>
+            function getCoke(account_type){
+              let data_list = ["client_id","client_secret","scope","redirect_uri"];
+              for (di=0;di<4;di++){
+                for (i=0;i<document.getElementsByClassName(data_list[di]).length;i++){
+                  document.getElementsByClassName(data_list[di])[i].value = document.getElementById(data_list[di]).value;
+                };  
+              }; 
+              if (account_type==0){             
+                document.getElementById('submit_1').click();
+              } else {
+                document.getElementById('submit_3').click();
+              };                       
+            };
+            function getToken(){             
+              let url = new URL(document.getElementById('code_0').value);
+              if (url.searchParams.get('code')) {
+                  document.getElementById('code_2').value = url.searchParams.get('code');
+                  document.getElementById('submit_2').click();
+                } else if (url.searchParams.get('error')) {
+                    document.getElementById("errormsg").innerText = "出错 "+url.searchParams.get('error') + ":\n" + url.searchParams.get('error_description');
+                  };
+            };
+        </script>
+</body>
+
+</html>
